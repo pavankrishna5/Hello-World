@@ -355,9 +355,9 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
         <article class="card" data-pillar="self">
           <span class="pillar">Self-service</span>
           <h4>Ephemeral environments</h4>
-          <p>Teams start a full copy of their stack for a pull request, test run, demo or agent task, and it deletes itself when the time limit runs out or the pull request closes. Version one gives each pull request its own namespace; later versions add vClusters and copies of test data.</p>
-          <p class="value"><strong>Value:</strong> no queue for shared staging, and no forgotten environments on the bill.</p>
-          <div class="tools"><span>ApplicationSet PR generator</span><span>vCluster</span><span>kube-janitor</span></div>
+          <p>Teams spin up CPU, memory and GPUs in their own namespace for a set time, for a dev workspace, a large test run or an experiment. The capacity is released automatically when the time is up. Each team keeps a base quota and borrows the rest from a shared pool.</p>
+          <p class="value"><strong>Value:</strong> capacity in minutes, without every team sizing its quota for its busiest day.</p>
+          <div class="tools"><span>Kueue</span><span>ResourceQuota</span><span>Karpenter</span></div>
         </article>
         <article class="card" data-pillar="harness">
           <span class="pillar">Agent harness</span>
@@ -532,7 +532,7 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
           <li>creates the ArgoCD project and points it at the deploy repo</li>
           <li>creates Airflow pools and connections on Astronomer or Composer</li>
           <li>sets the tenant's monthly budget in the LLM gateway</li>
-          <li>sets how many ephemeral environments the tenant may run, and for how long</li>
+          <li>sets the team's burst capacity and time limits for ephemeral environments</li>
           <li>enables an agent sandbox limited to the listed actions</li>
         </ol>
       </div>
@@ -561,8 +561,9 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
     <span class="k">monthlyBudgetUSD:</span> 2500
     <span class="k">models:</span> [claude-sonnet-5-5]
   <span class="k">environments:</span>
-    <span class="k">maxConcurrent:</span> 15
-    <span class="k">defaultTTL:</span> 24h
+    <span class="k">burst:</span> { <span class="k">cpu:</span> "64", <span class="k">memory:</span> 256Gi }  <span class="c"># borrowable on top of quotas</span>
+    <span class="k">maxConcurrent:</span> 10
+    <span class="k">defaultTTL:</span> 8h
     <span class="k">maxTTL:</span> 7d
   <span class="k">agents:</span>
     <span class="k">sandbox:</span> enabled
@@ -575,51 +576,54 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
     <div class="section-head">
       <span class="eyebrow">Self-service · deep dive</span>
       <h2 id="env-h">Ephemeral environments on demand</h2>
-      <p>A team gets a working copy of its stack in minutes, uses it, and it disappears on its own. The same building block runs pull-request previews, integration tests, demos, upgrade rehearsals and agent sandboxes.</p>
+      <p>Teams borrow CPU, memory and GPUs in their own namespace for as long as they need them: a dev workspace, a large test run, an experiment. When the time is up, the capacity goes back to the pool. Teams keep a smaller permanent quota instead of sizing for their busiest day.</p>
     </div>
 
     <div class="ways">
       <div>
-        <span class="eyebrow">Open a pull request</span>
-        <p>Add the <code>preview</code> label. ArgoCD's pull-request generator creates the environment, and the URL is posted as a PR comment. Merging or closing the PR deletes it.</p>
+        <span class="eyebrow">From the terminal or portal</span>
+        <p>Run <code>platform env up --cpu 16 --memory 64Gi --ttl 8h</code>, or fill in a form in the portal. The request shows the estimated cost per hour before it starts.</p>
       </div>
       <div>
-        <span class="eyebrow">Ask for one</span>
-        <p>Run <code>platform env up --from main --ttl 8h</code>, or click a button in the portal. Good for demos, debugging and load tests that don't belong to a PR.</p>
+        <span class="eyebrow">Declared in Git</span>
+        <p>Commit an <code>Environment</code> file to the team's deploy repo and ArgoCD creates it. Delete the file to release the capacity. Good for setups a team repeats, like a weekly load test.</p>
       </div>
       <div>
-        <span class="eyebrow">Let an agent ask</span>
-        <p>Agents call the same API through an MCP tool, inside their own sandbox limits. Each run gets a fresh environment and leaves nothing behind.</p>
+        <span class="eyebrow">From a pipeline or agent</span>
+        <p>CI jobs and AI agents call the same API to get capacity for one run and release it at the end. Agents use it through an MCP tool, inside their sandbox limits.</p>
       </div>
     </div>
 
     <ol class="lifecycle" aria-label="Environment lifecycle">
-      <li><b>Request</b><span>PR label, CLI, portal or agent. Checked against the tenant's limits.</span></li>
-      <li><b>Provision</b><span>Namespace or vCluster, ArgoCD app from the branch, secrets, DNS and TLS.</span></li>
-      <li><b>Seed</b><span>Restore masked test data and load the branch's Airflow DAGs.</span></li>
-      <li><b>Use</b><span>URL on the PR. Logs and traces tagged with the environment name.</span></li>
-      <li><b>Sleep</b><span>Scale to zero when idle, overnight and at weekends. Wakes on the next request.</span></li>
-      <li><b>Expire</b><span>When the time limit passes or the PR closes, everything is deleted, cloud resources included.</span></li>
+      <li><b>Request</b><span>How much CPU, memory and GPU, and for how long.</span></li>
+      <li><b>Admit</b><span>Checked against the team's quota. Borrows idle capacity if needed, or waits in a queue.</span></li>
+      <li><b>Start</b><span>Pods start in the team's namespace from a team template. Nodes are added if the cluster is full.</span></li>
+      <li><b>Use</b><span>Shell, notebook or internal URL. Usage is metered against the team.</span></li>
+      <li><b>Sleep</b><span>Scales to zero when idle. Storage is kept, so work resumes where it stopped.</span></li>
+      <li><b>Expire</b><span>At the time limit, pods are deleted, capacity is released, and the volume is snapshotted or removed.</span></li>
     </ol>
 
     <div class="split">
       <div class="text">
-        <h3>Choose the isolation per use</h3>
+        <h3>Building blocks</h3>
         <div class="table-wrap">
           <table class="compact">
-            <thead><tr><th>Isolation</th><th>Ready in</th><th>Best for</th></tr></thead>
+            <thead><tr><th>Piece</th><th>What it does</th></tr></thead>
             <tbody>
-              <tr><td>Namespace</td><td>seconds</td><td>Most app previews and integration tests. Cheapest; shares the cluster's CRDs and operators.</td></tr>
-              <tr><td>vCluster</td><td>about a minute</td><td>Teams that install CRDs or operators, platform changes, and agent work. Own API server, still cheap.</td></tr>
-              <tr><td>Dedicated cluster</td><td>tens of minutes</td><td>Kubernetes upgrade rehearsals and load tests. Expensive, so limited to a few at a time.</td></tr>
+              <tr><td>Team namespace</td><td>Where every environment runs. RBAC, network policy and default limits already come from the team's Tenant file.</td></tr>
+              <tr><td>ResourceQuota</td><td>The team's guaranteed base capacity, always available.</td></tr>
+              <tr><td>Kueue</td><td>Queues requests, lets a team borrow other teams' idle capacity up to a cap, and takes it back when the owner needs it.</td></tr>
+              <tr><td>Node autoscaling</td><td>Adds nodes for a burst and removes them after release. Karpenter on EKS, node auto-provisioning on GKE, cluster autoscaler on AKS.</td></tr>
+              <tr><td>Environment controller</td><td>Applies time limits, sleep and cleanup, and labels everything so cost lands on the team's report.</td></tr>
             </tbody>
           </table>
         </div>
         <h3>The hard parts</h3>
         <ul class="roles">
-          <li><b>Airflow</b><span>A new Cloud Composer environment is slow to create and costly to keep, so ephemeral copies run a small Airflow scheduler inside the environment with test connections only. Teams on Astronomer can use development deployments, which can hibernate when idle.</span></li>
-          <li><b>Data</b><span>Offer three choices: generated seed data, a masked snapshot restored from object storage, or a fast database clone (Cloud SQL clone, Aurora cloning). Never production data or production secrets.</span></li>
-          <li><b>Cleanup</b><span>A cleanup controller deletes anything past its time limit and anything without an owner label. Every resource is labeled so its cost lands on the tenant's report.</span></li>
+          <li><b>Fair sharing</b><span>Borrowing needs limits. Cap how much any team can borrow, and reclaim borrowed capacity first when its owner asks for it.</span></li>
+          <li><b>Protecting production</b><span>Environments run at a lower priority class, ideally on separate node pools, so a burst never evicts production pods.</span></li>
+          <li><b>Idle waste</b><span>Default time limits, sleep when CPU stays idle, and a cost estimate on every request keep forgotten environments rare.</span></li>
+          <li><b>Cleanup</b><span>The controller deletes anything past its time limit and anything without an owner label, inside each team's namespace.</span></li>
         </ul>
       </div>
       <div class="code">
@@ -627,29 +631,27 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
 <pre id="env-yaml"><span class="k">apiVersion:</span> platform.example.com/v1alpha1
 <span class="k">kind:</span> Environment
 <span class="k">metadata:</span>
-  <span class="k">name:</span> pr-482
-  <span class="k">namespace:</span> payments-risk
+  <span class="k">name:</span> risk-model-backtest
+  <span class="k">namespace:</span> payments-risk     <span class="c"># the team's own namespace</span>
 <span class="k">spec:</span>
   <span class="k">owner:</span> team-payments-risk
-  <span class="k">source:</span>
-    <span class="k">repo:</span> github.com/example/payments-risk-deploy
-    <span class="k">ref:</span> refs/pull/482/head
-  <span class="k">isolation:</span> vcluster       <span class="c"># namespace | vcluster | cluster</span>
-  <span class="k">cluster:</span> gke-dev-europe-west1
-  <span class="k">ttl:</span> 48h                   <span class="c"># capped by the tenant's maxTTL</span>
+  <span class="k">template:</span> python-workspace   <span class="c"># team-approved image and tools</span>
+  <span class="k">resources:</span>
+    <span class="k">cpu:</span> "16"
+    <span class="k">memory:</span> 64Gi
+    <span class="k">gpu:</span> { <span class="k">type:</span> nvidia-l4, <span class="k">count:</span> 1 }  <span class="c"># optional</span>
+  <span class="k">storage:</span>
+    <span class="k">size:</span> 100Gi
+    <span class="k">keepWhileAsleep:</span> true
+  <span class="k">ttl:</span> 8h                      <span class="c"># capped by the tenant's maxTTL</span>
   <span class="k">sleep:</span>
-    <span class="k">afterIdle:</span> 2h
-    <span class="k">schedule:</span> nights-and-weekends
-  <span class="k">data:</span>
-    <span class="k">postgres:</span> { <span class="k">from:</span> snapshot/payments-masked-latest }
-  <span class="k">airflow:</span>
-    <span class="k">mode:</span> in-environment     <span class="c"># small scheduler, test connections</span>
-    <span class="k">dags:</span> dags/
-  <span class="k">expose:</span>
-    <span class="k">host:</span> pr-482.payments-risk.preview.example.com
+    <span class="k">afterIdle:</span> 1h
+  <span class="k">priority:</span> ephemeral          <span class="c"># never evicts production</span>
+  <span class="k">queue:</span> payments-risk         <span class="c"># Kueue LocalQueue</span>
 <span class="k">status:</span>
   <span class="k">phase:</span> Ready
-  <span class="k">expiresAt:</span> "2026-11-03T14:00:00Z"</pre>
+  <span class="k">admittedFrom:</span> borrowed       <span class="c"># base | borrowed</span>
+  <span class="k">expiresAt:</span> "2026-11-01T23:00:00Z"</pre>
       </div>
     </div>
   </section>
@@ -665,7 +667,7 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
         <thead><tr><th>Metric</th><th>Goal</th><th>Why it matters</th><th>Where the data comes from</th></tr></thead>
         <tbody>
           <tr><td>Tenant onboarding time</td><td class="dir">↓ lower</td><td>The clearest sign that self-service works.</td><td>Timestamp of the request vs. first successful ArgoCD sync</td></tr>
-          <tr><td>Time to a ready environment</td><td class="dir">↓ lower</td><td>Developers will skip previews if they're slow.</td><td>Environment created vs. status Ready, per isolation type</td></tr>
+          <tr><td>Time to a ready environment</td><td class="dir">↓ lower</td><td>Teams fall back to oversized permanent quotas if it's slow.</td><td>Environment requested vs. Ready, split by base and borrowed capacity</td></tr>
           <tr><td>Environments past their time limit</td><td class="dir">↓ lower</td><td>Forgotten environments are pure waste.</td><td>Cleanup controller reports</td></tr>
           <tr><td>Requests handled without the team</td><td class="dir">↑ higher</td><td>Frees the team for roadmap work.</td><td>Ticket queue vs. merged Tenant and portal changes</td></tr>
           <tr><td>Spend attributed to a tenant</td><td class="dir">↑ higher</td><td>Unattributed spend can't be managed or charged back.</td><td>Cost report: attributed vs. total cloud, GPU and token spend</td></tr>
@@ -687,7 +689,7 @@ footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid v
           <li><div><b>Take inventory</b><span>Every tenant, cluster, ArgoCD instance and Airflow environment, with an owner for each.</span></div></li>
           <li><div><b>Stand up the LLM gateway</b><span>Move existing provider keys behind it and turn on per-team spend reporting.</span></div></li>
           <li><div><b>Draft the Tenant spec</b><span>Pilot it with two friendly teams on one cluster per cloud.</span></div></li>
-          <li><div><b>Pilot pull-request previews</b><span>Namespace per pull request for one service, with a 24-hour limit and automatic cleanup.</span></div></li>
+          <li><div><b>Pilot ephemeral environments</b><span>One team on one cluster: base quota plus a burst pool through Kueue, an 8-hour default limit, and automatic release.</span></div></li>
           <li><div><b>Ship the read-only MCP server</b><span>Start with ArgoCD sync status and Airflow DAG run history.</span></div></li>
           <li><div><b>Convert the top ten runbooks</b><span>Pick the ones behind the most pages and tickets.</span></div></li>
           <li><div><b>Publish the first cost report</b><span>Even rough attribution starts the right conversations.</span></div></li>
