@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Platform Team Horizons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 1120px column. Hero pairs the thesis with today's estate; the roadmap is three
+   horizon columns (now / next / later) filtered by pillar; the harness is a layered stack. */
+:root {
+  --bg: #F3F5F8;
+  --surface: #FFFFFF;
+  --ink: #121A24;
+  --muted: #586474;
+  --line: #D8DEE6;
+  --accent: #2446C7;
+  --accent-soft: #E4E9FA;
+  --h1: #0E7A6B;
+  --h2: #2446C7;
+  --h3: #A65E00;
+  --code-bg: #E9EDF3;
+  --code-key: #2446C7;
+  --code-com: #6B7684;
+
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: 2rem;
+  --step-4: clamp(2.25rem, 5.5vw, 3.75rem);
+  --radius: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C1117; --surface: #141B24; --ink: #E5EAF0; --muted: #96A2B2; --line: #263140;
+    --accent: #8FA7FF; --accent-soft: #1B2646; --h1: #45C3AE; --h2: #8FA7FF; --h3: #E5A550;
+    --code-bg: #0A0E13; --code-key: #8FA7FF; --code-com: #7D8898;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C1117; --surface: #141B24; --ink: #E5EAF0; --muted: #96A2B2; --line: #263140;
+  --accent: #8FA7FF; --accent-soft: #1B2646; --h1: #45C3AE; --h2: #8FA7FF; --h3: #E5A550;
+  --code-bg: #0A0E13; --code-key: #8FA7FF; --code-com: #7D8898;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 48px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: var(--step-4); font-weight: 800; font-stretch: 112%; line-height: 1.02; }
+h2 { font-size: var(--step-3); font-weight: 750; font-stretch: 108%; line-height: 1.1; }
+h3 { font-size: var(--step-1); font-weight: 650; font-stretch: 100%; line-height: 1.25; }
+p { margin: 0; }
+a { color: var(--accent); }
+code { font-family: var(--font-mono); font-size: 0.875em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+pre code { background: none; padding: 0; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lede { font-size: var(--step-1); color: var(--muted); max-width: 62ch; }
+.section-head { display: flex; flex-direction: column; gap: 12px; max-width: 70ch; }
+.section-head p { color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 28px; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.hero-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.estate {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-width: 0;
+}
+.estate ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.estate li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 12px; padding-block: 10px; border-top: 1px solid var(--line); }
+.estate li:first-child { border-top: 0; padding-top: 0; }
+.estate .k { font-family: var(--font-mono); font-size: var(--step--1); color: var(--accent); padding-top: 2px; }
+.estate .v { font-size: 0.9375rem; }
+
+/* Thesis */
+.thesis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.thesis article { display: flex; flex-direction: column; gap: 10px; border-top: 2px solid var(--ink); padding-top: 16px; min-width: 0; }
+.thesis .verb { font-family: var(--font-display); font-stretch: 125%; font-weight: 800; font-size: var(--step-2); line-height: 1.1; }
+.thesis p { color: var(--muted); }
+
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filters .label { margin-right: 4px; }
+.chip {
+  font: 500 var(--step--1)/1 var(--font-body);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.chip:focus-visible, .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Roadmap */
+.horizons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.horizon { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.horizon-head { display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.horizon-head .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.horizon-head h3 { display: flex; align-items: center; gap: 10px; font-size: var(--step-2); font-stretch: 112%; font-weight: 800; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--hc); flex: none; }
+.horizon-head .when { font-family: var(--font-mono); font-size: var(--step--1); color: var(--hc); }
+.horizon-head p { color: var(--muted); font-size: 0.9375rem; }
+.count { font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); font-variant-numeric: tabular-nums; }
+.h1c { --hc: var(--h1); } .h2c { --hc: var(--h2); } .h3c { --hc: var(--h3); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.card .pillar { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hc); }
+.card h4 { margin: 0; font-family: var(--font-display); font-size: 1.0625rem; font-weight: 650; line-height: 1.3; }
+.card p { font-size: 0.9375rem; }
+.card .value { color: var(--muted); }
+.card .value strong { color: var(--ink); font-weight: 600; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.tools span { font-family: var(--font-mono); font-size: 0.71875rem; padding: 3px 7px; border-radius: 4px; background: var(--code-bg); color: var(--muted); }
+.empty { color: var(--muted); font-size: 0.9375rem; padding: 14px 0; }
+
+/* Harness */
+.harness { display: grid; grid-template-columns: minmax(0, 1fr) 11rem; gap: 12px; }
+.layers { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.layer { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 12px; align-items: center; }
+.layer .name { font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); text-align: right; }
+.boxes { display: flex; flex-wrap: wrap; gap: 8px; }
+.box { flex: 1 1 8rem; padding: 10px 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); font-size: 0.875rem; font-weight: 500; text-align: center; }
+.layer.guard .box { background: var(--accent-soft); border-color: transparent; color: var(--ink); }
+.layer.infra .box { background: var(--code-bg); border-color: transparent; font-family: var(--font-mono); font-size: 0.8125rem; }
+.rail {
+  border: 1px dashed var(--accent);
+  border-radius: 4px;
+  display: flex; flex-direction: column; justify-content: center; gap: 6px;
+  padding: 14px; text-align: center; font-size: 0.875rem;
+}
+.rail strong { font-family: var(--font-display); font-size: 1rem; }
+.rail span { color: var(--muted); }
+.harness-notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; margin: 0; padding: 0; list-style: none; }
+.harness-notes li { display: flex; flex-direction: column; gap: 2px; font-size: 0.9375rem; }
+.harness-notes b { font-weight: 600; }
+.harness-notes span { color: var(--muted); }
+
+/* Tenant as code */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px; align-items: start; }
+.split .text { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.split .text p { color: var(--muted); }
+.split ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; }
+.code { position: relative; min-width: 0; }
+pre {
+  margin: 0; overflow-x: auto;
+  background: var(--code-bg); border-radius: var(--radius);
+  padding: 18px 20px; font: 400 0.8125rem/1.6 var(--font-mono); color: var(--ink);
+}
+pre .k { color: var(--code-key); }
+pre .c { color: var(--code-com); }
+.copy {
+  position: absolute; top: 10px; right: 10px;
+  font: 500 0.75rem/1 var(--font-body); padding: 6px 10px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+}
+
+/* Measures */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.9375rem; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; }
+td.dir { font-family: var(--font-mono); font-size: var(--step--1); white-space: nowrap; }
+
+/* 90 days + team */
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px; }
+.two > div { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: flex; flex-direction: column; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: 8px; padding-block: 12px; border-top: 1px solid var(--line); }
+.steps li::before { content: counter(s, decimal-leading-zero); font-family: var(--font-mono); font-size: var(--step--1); color: var(--accent); padding-top: 2px; }
+.steps b { font-weight: 600; }
+.steps span { display: block; color: var(--muted); font-size: 0.9375rem; }
+.roles { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.roles li { padding-block: 12px; border-top: 1px solid var(--line); }
+.roles b { font-weight: 600; }
+.roles span { display: block; color: var(--muted); font-size: 0.9375rem; }
+
+footer { color: var(--muted); font-size: var(--step--1); border-top: 1px solid var(--line); padding-top: 20px; }
+
+@media (max-width: 900px) {
+  .hero, .split, .two { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .horizons { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .thesis { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .harness { grid-template-columns: minmax(0, 1fr); }
+  .harness-notes { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .wrap { padding-block: 32px 56px; gap: 56px; }
+  .estate li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .layer { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .layer .name { text-align: left; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: border-color .15s ease; }
+  .card:hover { border-color: var(--hc); }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <header class="hero">
+    <div class="hero-main">
+      <span class="eyebrow">Platform engineering · 24-month roadmap</span>
+      <h1>Platform Team Horizons</h1>
+      <p class="lede">How a team that runs multi-tenant Kubernetes across public clouds, ArgoCD, Cloud Composer and Astronomer becomes the place the company runs AI, and the team that makes it safe for AI agents to operate infrastructure.</p>
+    </div>
+    <aside class="estate" aria-label="What the team runs today">
+      <span class="eyebrow">What we run today</span>
+      <ul>
+        <li><span class="k">kubernetes</span><span class="v">Multi-tenant clusters on more than one public cloud (for example GKE, EKS, AKS), shared by many product teams.</span></li>
+        <li><span class="k">argocd</span><span class="v">GitOps delivery: every tenant's apps sync from Git into the clusters.</span></li>
+        <li><span class="k">cloud composer</span><span class="v">Managed Airflow on Google Cloud for data and batch pipelines.</span></li>
+        <li><span class="k">astronomer</span><span class="v">Managed Airflow (Astro) for teams who need it outside GCP or with Astro features.</span></li>
+        <li><span class="k">the long tail</span><span class="v">Ingress, DNS, TLS certificates, secrets, registries, CI runners, observability, access requests.</span></li>
+      </ul>
+    </aside>
+  </header>
+
+  <section aria-labelledby="thesis-h">
+    <div class="section-head">
+      <span class="eyebrow">What AI-proofing means for this team</span>
+      <h2 id="thesis-h">Three shifts, all built on what the team already owns</h2>
+      <p>Tickets, onboarding checklists and routine upgrades are the work AI automates first. The team's lasting value is the control plane: identity, tenancy, policy, GitOps and cost. Those are exactly what AI workloads and AI agents need.</p>
+    </div>
+    <div class="thesis">
+      <article>
+        <span class="verb">Run AI</span>
+        <p>Host GPUs, models, vector stores and LLM traffic with the same tenancy, quotas and GitOps that services get today. Teams stop building one-off AI stacks.</p>
+      </article>
+      <article>
+        <span class="verb">Be run by AI</span>
+        <p>Make every platform API safe for an agent to call: scoped identity, policy checks, approval gates, budgets and a full audit trail. Agents propose changes; GitOps applies them.</p>
+      </article>
+      <article>
+        <span class="verb">Move up the stack</span>
+        <p>Automate onboarding, triage and upgrades so the team's time goes to architecture, reliability and governance, the work that needs judgment and someone accountable.</p>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="roadmap-h">
+    <div class="section-head">
+      <span class="eyebrow">Roadmap</span>
+      <h2 id="roadmap-h">Eighteen initiatives in three horizons</h2>
+      <p>Each horizon depends on the one before it. Guardrails, cost attribution and AI-readable docs come first because every agent and AI workload later relies on them.</p>
+    </div>
+
+    <div class="filters" role="group" aria-label="Filter by pillar">
+      <span class="eyebrow label">Pillar</span>
+      <button class="chip" type="button" id="f-all" data-filter="all" aria-pressed="true">All</button>
+      <button class="chip" type="button" id="f-ai" data-filter="ai" aria-pressed="false">AI workloads</button>
+      <button class="chip" type="button" id="f-harness" data-filter="harness" aria-pressed="false">Agent harness</button>
+      <button class="chip" type="button" id="f-self" data-filter="self" aria-pressed="false">Self-service</button>
+      <button class="chip" type="button" id="f-ops" data-filter="ops" aria-pressed="false">AI-assisted ops</button>
+      <button class="chip" type="button" id="f-data" data-filter="data" aria-pressed="false">Data &amp; Airflow</button>
+      <button class="chip" type="button" id="f-gov" data-filter="gov" aria-pressed="false">Cost &amp; governance</button>
+      <button class="chip" type="button" id="f-team" data-filter="team" aria-pressed="false">Operating model</button>
+    </div>
+
+    <div class="horizons">
+      <div class="horizon h1c" data-horizon>
+        <div class="horizon-head">
+          <div class="row"><h3><span class="dot"></span>Now</h3><span class="count" data-count></span></div>
+          <span class="when">0–6 months · foundations</span>
+          <p>Put AI traffic behind one door, make tenancy declarative, and set the guardrails agents will need.</p>
+        </div>
+
+        <article class="card" data-pillar="ai">
+          <span class="pillar">AI workloads</span>
+          <h4>LLM gateway</h4>
+          <p>One internal endpoint for every model provider. It holds the API keys, enforces per-tenant quotas, logs prompts by policy, redacts PII and fails over between providers.</p>
+          <p class="value"><strong>Value:</strong> ends shadow API keys and gives one bill with spend per team.</p>
+          <div class="tools"><span>LiteLLM</span><span>Envoy AI Gateway</span><span>OpenTelemetry</span></div>
+        </article>
+        <article class="card" data-pillar="self">
+          <span class="pillar">Self-service</span>
+          <h4>Tenant as code</h4>
+          <p>A single <code>Tenant</code> resource creates namespaces on every cluster, RBAC, quotas, network policy, the ArgoCD project, Airflow pools and an LLM budget.</p>
+          <p class="value"><strong>Value:</strong> onboarding becomes one reviewed pull request instead of a week of tickets.</p>
+          <div class="tools"><span>Crossplane</span><span>ApplicationSets</span><span>Kubebuilder</span></div>
+        </article>
+        <article class="card" data-pillar="harness">
+          <span class="pillar">Agent harness</span>
+          <h4>Read-only platform MCP server</h4>
+          <p>Expose cluster health, ArgoCD sync status and Composer/Astronomer DAG runs as MCP tools, scoped to the caller's tenant, so engineers' AI assistants can answer "why is my app out of sync?"</p>
+          <p class="value"><strong>Value:</strong> fewer "can you check this for me" requests to the team.</p>
+          <div class="tools"><span>MCP</span><span>ArgoCD API</span><span>Airflow REST API</span></div>
+        </article>
+        <article class="card" data-pillar="team">
+          <span class="pillar">Operating model</span>
+          <h4>AI-readable runbooks</h4>
+          <p>Move runbooks and docs into Git as structured Markdown: preconditions, exact commands, expected output, rollback. The same page serves an on-call engineer and an agent.</p>
+          <p class="value"><strong>Value:</strong> almost every later initiative depends on this.</p>
+          <div class="tools"><span>Markdown in Git</span><span>docs CI</span></div>
+        </article>
+        <article class="card" data-pillar="gov">
+          <span class="pillar">Cost &amp; governance</span>
+          <h4>Cost per tenant across clouds</h4>
+          <p>Join cluster cost, GPU hours, Airflow environments and LLM tokens into one report per tenant, refreshed daily by a Composer DAG.</p>
+          <p class="value"><strong>Value:</strong> showback today, chargeback when leadership wants it.</p>
+          <div class="tools"><span>OpenCost</span><span>billing exports</span><span>BigQuery</span></div>
+        </article>
+        <article class="card" data-pillar="gov">
+          <span class="pillar">Cost &amp; governance</span>
+          <h4>Policy and supply-chain baseline</h4>
+          <p>Admission policies on every cluster, signed images and SBOMs for platform components. Agents will change nothing until these exist.</p>
+          <p class="value"><strong>Value:</strong> the safety net under every automated change.</p>
+          <div class="tools"><span>Kyverno</span><span>OPA Gatekeeper</span><span>cosign</span></div>
+        </article>
+      </div>
+
+      <div class="horizon h2c" data-horizon>
+        <div class="horizon-head">
+          <div class="row"><h3><span class="dot"></span>Next</h3><span class="count" data-count></span></div>
+          <span class="when">6–12 months · AI on the platform</span>
+          <p>Shared GPUs, a paved road for serving models, and agents working inside a sandbox through pull requests.</p>
+        </div>
+
+        <article class="card" data-pillar="ai">
+          <span class="pillar">AI workloads</span>
+          <h4>Shared GPU pools</h4>
+          <p>GPU node pools on each cloud with fair-share queueing, GPU slicing for small jobs and scale-to-zero, offered through the same tenant quotas.</p>
+          <p class="value"><strong>Value:</strong> higher GPU utilization; teams stop reserving idle GPUs.</p>
+          <div class="tools"><span>Kueue</span><span>NVIDIA GPU Operator</span><span>Karpenter</span></div>
+        </article>
+        <article class="card" data-pillar="ai">
+          <span class="pillar">AI workloads</span>
+          <h4>Model serving golden path</h4>
+          <p>A template that deploys an open-weight or fine-tuned model with autoscaling, health checks and automatic registration in the LLM gateway.</p>
+          <p class="value"><strong>Value:</strong> a model goes live in hours, with the same SLOs as any service.</p>
+          <div class="tools"><span>vLLM</span><span>KServe</span><span>Helm</span></div>
+        </article>
+        <article class="card" data-pillar="harness">
+          <span class="pillar">Agent harness</span>
+          <h4>Agent sandboxes</h4>
+          <p>Short-lived, isolated namespaces for coding and ops agents: a sandboxed runtime, default-deny egress with an allowlist, short-lived workload identity, CPU and time budgets.</p>
+          <p class="value"><strong>Value:</strong> teams run agents on company infrastructure instead of laptops.</p>
+          <div class="tools"><span>gVisor</span><span>Kata Containers</span><span>NetworkPolicy</span></div>
+        </article>
+        <article class="card" data-pillar="harness">
+          <span class="pillar">Agent harness</span>
+          <h4>Agents propose, GitOps applies</h4>
+          <p>Agents change infrastructure only by opening pull requests. Policy checks and a human approval run before ArgoCD syncs. Allowed actions widen as eval scores prove reliability.</p>
+          <p class="value"><strong>Value:</strong> automation with the same review trail as human changes.</p>
+          <div class="tools"><span>ArgoCD</span><span>branch protection</span><span>policy CI</span></div>
+        </article>
+        <article class="card" data-pillar="ops">
+          <span class="pillar">AI-assisted ops</span>
+          <h4>Incident triage assistant</h4>
+          <p>When an alert fires, it gathers recent syncs, pod events, logs and failed DAG runs, then posts a summary and likely cause in the incident channel. A human decides what to do.</p>
+          <p class="value"><strong>Value:</strong> shorter time to diagnosis, less context-gathering at 3 a.m.</p>
+          <div class="tools"><span>Alertmanager</span><span>MCP tools</span><span>Slack</span></div>
+        </article>
+        <article class="card" data-pillar="data">
+          <span class="pillar">Data &amp; Airflow</span>
+          <h4>One Airflow standard</h4>
+          <p>A shared DAG library, DAG linting and tests in CI, lineage, and one deployment pattern for Composer and Astronomer. Add DAG templates for embedding refreshes and model evals.</p>
+          <p class="value"><strong>Value:</strong> pipelines move between Composer and Astro without rewrites.</p>
+          <div class="tools"><span>OpenLineage</span><span>pytest</span><span>Astro CLI</span></div>
+        </article>
+      </div>
+
+      <div class="horizon h3c" data-horizon>
+        <div class="horizon-head">
+          <div class="row"><h3><span class="dot"></span>Later</h3><span class="count" data-count></span></div>
+          <span class="when">12–24 months · platform as a product</span>
+          <p>Agents handle routine upkeep, measured by evals. The platform has one front door for people and agents.</p>
+        </div>
+
+        <article class="card" data-pillar="ops">
+          <span class="pillar">AI-assisted ops</span>
+          <h4>Upgrade agents</h4>
+          <p>Agents prepare Kubernetes minor upgrades, Helm chart bumps, deprecated API migrations and Airflow runtime upgrades. They test in a staging cluster and open a pull request with the results.</p>
+          <p class="value"><strong>Value:</strong> clusters stay current without a quarter of manual work.</p>
+          <div class="tools"><span>Pluto</span><span>Renovate</span><span>staging fleet</span></div>
+        </article>
+        <article class="card" data-pillar="harness">
+          <span class="pillar">Agent harness</span>
+          <h4>Agent evaluation suite</h4>
+          <p>A set of golden tasks, such as "repair this broken ArgoCD app in a sandbox cluster", scored on every model or prompt change. Scores decide which actions an agent may take alone.</p>
+          <p class="value"><strong>Value:</strong> autonomy is earned with evidence, not granted on trust.</p>
+          <div class="tools"><span>kind clusters</span><span>eval runner</span><span>OpenTelemetry</span></div>
+        </article>
+        <article class="card" data-pillar="self">
+          <span class="pillar">Self-service</span>
+          <h4>Developer portal with a chat front door</h4>
+          <p>A service catalog with scorecards, plus an assistant that can create tenants, request GPUs and scaffold services through the same pull-request flow.</p>
+          <p class="value"><strong>Value:</strong> most requests never reach the team's queue.</p>
+          <div class="tools"><span>Backstage</span><span>templates</span><span>MCP tools</span></div>
+        </article>
+        <article class="card" data-pillar="ai">
+          <span class="pillar">AI workloads</span>
+          <h4>Managed retrieval service</h4>
+          <p>A vector store per tenant with ingestion DAG templates. Documents keep the access rules of their source system.</p>
+          <p class="value"><strong>Value:</strong> teams build retrieval features without running their own database.</p>
+          <div class="tools"><span>pgvector</span><span>Airflow</span><span>IAM mapping</span></div>
+        </article>
+        <article class="card" data-pillar="gov">
+          <span class="pillar">Cost &amp; governance</span>
+          <h4>Continuous compliance evidence</h4>
+          <p>Collect audit evidence (access reviews, change history, policy results) from clusters, Git and cloud accounts automatically, mapped to SOC 2 or ISO 27001 controls.</p>
+          <p class="value"><strong>Value:</strong> audits take days instead of weeks.</p>
+          <div class="tools"><span>policy reports</span><span>Git history</span><span>cloud audit logs</span></div>
+        </article>
+        <article class="card" data-pillar="gov">
+          <span class="pillar">Cost &amp; governance</span>
+          <h4>Workload placement advisor</h4>
+          <p>Recommend, then automate, where batch and GPU jobs run based on price, capacity and data-residency rules across clouds.</p>
+          <p class="value"><strong>Value:</strong> multi-cloud becomes a cost lever, not only a cost.</p>
+          <div class="tools"><span>Kueue</span><span>MultiKueue</span><span>cost data</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="harness-h">
+    <div class="section-head">
+      <span class="eyebrow">Reference architecture</span>
+      <h2 id="harness-h">The agent harness</h2>
+      <p>The harness is the set of layers between an AI agent and production. Most of it reuses what the team already runs. The new parts are the front door and the guardrails.</p>
+    </div>
+    <div class="harness">
+      <div class="layers">
+        <div class="layer"><span class="name">who calls</span><div class="boxes"><div class="box">Engineers' AI assistants</div><div class="box">Ops agents</div><div class="box">ML and data pipelines</div></div></div>
+        <div class="layer"><span class="name">front door</span><div class="boxes"><div class="box">Platform MCP tools</div><div class="box">LLM gateway</div><div class="box">Developer portal</div></div></div>
+        <div class="layer guard"><span class="name">guardrails</span><div class="boxes"><div class="box">Workload identity</div><div class="box">Policy as code</div><div class="box">Approval gates</div><div class="box">Budgets</div><div class="box">Audit log</div></div></div>
+        <div class="layer"><span class="name">execution</span><div class="boxes"><div class="box">Sandboxed namespaces</div><div class="box">ArgoCD (GitOps)</div><div class="box">Composer / Astronomer</div></div></div>
+        <div class="layer infra"><span class="name">infrastructure</span><div class="boxes"><div class="box">GKE</div><div class="box">EKS</div><div class="box">AKS</div></div></div>
+      </div>
+      <div class="rail">
+        <strong>Evals &amp; tracing</strong>
+        <span>Every agent action is traced end to end and replayed in the eval suite.</span>
+      </div>
+    </div>
+    <ul class="harness-notes">
+      <li><b>Agents get identities, not shared keys.</b><span>Each agent run has a short-lived identity tied to a tenant and a person who started it.</span></li>
+      <li><b>Write access goes through Git.</b><span>Agents read live state through MCP tools but change it only through pull requests that ArgoCD applies.</span></li>
+      <li><b>Autonomy is a dial.</b><span>Read only, then open pull requests, then auto-merge for low-risk changes, set per action and per tenant.</span></li>
+      <li><b>Budgets stop runaway loops.</b><span>Token, CPU and wall-clock limits per run, enforced by the gateway and the sandbox.</span></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="tenant-h">
+    <div class="split">
+      <div class="text">
+        <span class="eyebrow">Example</span>
+        <h2 id="tenant-h">One file per tenant</h2>
+        <p>The <code>Tenant</code> resource is the center of the roadmap. Everything the team provides, from clusters to GPUs to agent permissions, becomes a field on it. An agent or a person changes it the same way: a pull request.</p>
+        <p>When this file merges, a controller:</p>
+        <ol>
+          <li>creates the namespace, RBAC and quotas on each listed cluster</li>
+          <li>creates the ArgoCD project and points it at the deploy repo</li>
+          <li>creates Airflow pools and connections on Astronomer or Composer</li>
+          <li>sets the tenant's monthly budget in the LLM gateway</li>
+          <li>enables an agent sandbox limited to the listed actions</li>
+        </ol>
+      </div>
+      <div class="code">
+        <button class="copy" type="button" id="copy-yaml">Copy</button>
+<pre id="tenant-yaml"><span class="k">apiVersion:</span> platform.example.com/v1alpha1
+<span class="k">kind:</span> Tenant
+<span class="k">metadata:</span>
+  <span class="k">name:</span> payments-risk
+<span class="k">spec:</span>
+  <span class="k">owners:</span> [team-payments-risk]
+  <span class="k">clusters:</span>
+    - gke-prod-europe-west1
+    - eks-prod-us-east-1
+  <span class="k">quotas:</span>
+    <span class="k">cpu:</span> "200"
+    <span class="k">memory:</span> 800Gi
+    <span class="k">gpu:</span> { <span class="k">type:</span> nvidia-l4, <span class="k">max:</span> 8 }
+  <span class="k">gitops:</span>
+    <span class="k">argocdProject:</span> payments-risk
+    <span class="k">repo:</span> github.com/example/payments-risk-deploy
+  <span class="k">airflow:</span>
+    <span class="k">target:</span> astronomer        <span class="c"># or: composer</span>
+    <span class="k">pools:</span> { <span class="k">default:</span> 16 }
+  <span class="k">llmGateway:</span>
+    <span class="k">monthlyBudgetUSD:</span> 2500
+    <span class="k">models:</span> [claude-sonnet-5-5]
+  <span class="k">agents:</span>
+    <span class="k">sandbox:</span> enabled
+    <span class="k">allowedActions:</span> [read, open-pr]  <span class="c"># widen after evals pass</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="measure-h">
+    <div class="section-head">
+      <span class="eyebrow">Showing value</span>
+      <h2 id="measure-h">What to measure</h2>
+      <p>Record a baseline for each before the first horizon starts, then report the trend every quarter. Leadership funds what it can see.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Goal</th><th>Why it matters</th><th>Where the data comes from</th></tr></thead>
+        <tbody>
+          <tr><td>Tenant onboarding time</td><td class="dir">↓ lower</td><td>The clearest sign that self-service works.</td><td>Timestamp of the request vs. first successful ArgoCD sync</td></tr>
+          <tr><td>Requests handled without the team</td><td class="dir">↑ higher</td><td>Frees the team for roadmap work.</td><td>Ticket queue vs. merged Tenant and portal changes</td></tr>
+          <tr><td>Spend attributed to a tenant</td><td class="dir">↑ higher</td><td>Unattributed spend can't be managed or charged back.</td><td>Cost report: attributed vs. total cloud, GPU and token spend</td></tr>
+          <tr><td>GPU utilization</td><td class="dir">↑ higher</td><td>GPUs are the most expensive line on the bill.</td><td>DCGM exporter metrics per pool</td></tr>
+          <tr><td>Time to diagnose incidents</td><td class="dir">↓ lower</td><td>Shows the value of the triage assistant.</td><td>Alert time vs. first correct cause posted</td></tr>
+          <tr><td>Agent pull requests merged without rework</td><td class="dir">↑ higher</td><td>Decides how far to widen agent autonomy.</td><td>PR labels and review history</td></tr>
+          <tr><td>Version lag</td><td class="dir">↓ lower</td><td>Old clusters and Airflow versions become security risk.</td><td>Kubernetes and Airflow versions per environment vs. latest supported</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="start-h">
+    <div class="two">
+      <div>
+        <span class="eyebrow">Starting point</span>
+        <h2 id="start-h">The first 90 days</h2>
+        <ol class="steps">
+          <li><div><b>Take inventory</b><span>Every tenant, cluster, ArgoCD instance and Airflow environment, with an owner for each.</span></div></li>
+          <li><div><b>Stand up the LLM gateway</b><span>Move existing provider keys behind it and turn on per-team spend reporting.</span></div></li>
+          <li><div><b>Draft the Tenant spec</b><span>Pilot it with two friendly teams on one cluster per cloud.</span></div></li>
+          <li><div><b>Ship the read-only MCP server</b><span>Start with ArgoCD sync status and Airflow DAG run history.</span></div></li>
+          <li><div><b>Convert the top ten runbooks</b><span>Pick the ones behind the most pages and tickets.</span></div></li>
+          <li><div><b>Publish the first cost report</b><span>Even rough attribution starts the right conversations.</span></div></li>
+        </ol>
+      </div>
+      <div>
+        <span class="eyebrow">Team</span>
+        <h2>How the team works differently</h2>
+        <ul class="roles">
+          <li><b>Treat the platform as a product</b><span>Name a product owner, keep a public roadmap, and interview tenant teams each quarter.</span></li>
+          <li><b>Publish SLOs for platform services</b><span>Cluster API, ArgoCD sync, Airflow scheduler and LLM gateway, each with an error budget.</span></li>
+          <li><b>Build skills in AI infrastructure</b><span>GPU scheduling, model serving, evals and agent security, learned by shipping the Now horizon.</span></li>
+          <li><b>Review agent work like a teammate's</b><span>Same pull-request standards, same on-call ownership, same post-incident reviews.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Tool names are examples of common open-source and managed options, not commitments. Choose based on the clouds and contracts the company already has.
+  </footer>
+</main>
+
+<script>
+(function () {
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  var horizons = Array.prototype.slice.call(document.querySelectorAll('[data-horizon]'));
+
+  function apply(filter) {
+    chips.forEach(function (c) { c.setAttribute('aria-pressed', String(c.dataset.filter === filter)); });
+    horizons.forEach(function (h) {
+      var cards = h.querySelectorAll('.card');
+      var shown = 0;
+      cards.forEach(function (card) {
+        var match = filter === 'all' || card.dataset.pillar === filter;
+        card.hidden = !match;
+        if (match) shown++;
+      });
+      var count = h.querySelector('[data-count]');
+      count.textContent = shown + (shown === 1 ? ' item' : ' items');
+      var empty = h.querySelector('.empty');
+      if (shown === 0) {
+        if (!empty) {
+          empty = document.createElement('p');
+          empty.className = 'empty';
+          h.appendChild(empty);
+        }
+        empty.textContent = 'Nothing for this pillar in this horizon.';
+        empty.hidden = false;
+      } else if (empty) {
+        empty.hidden = true;
+      }
+    });
+  }
+
+  chips.forEach(function (c) { c.addEventListener('click', function () { apply(c.dataset.filter); }); });
+  apply('all');
+
+  var btn = document.getElementById('copy-yaml');
+  var pre = document.getElementById('tenant-yaml');
+  btn.addEventListener('click', function () {
+    var text = pre.innerText;
+    function selectIt() {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = 'Selected';
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { btn.textContent = 'Copied'; }, selectIt);
+    } catch (e) { selectIt(); }
+    setTimeout(function () { btn.textContent = 'Copy'; }, 1800);
+  });
+})();
+</script>
+</body>
+</html>
